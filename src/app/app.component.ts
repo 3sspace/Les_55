@@ -1,26 +1,39 @@
-import { Component } from '@angular/core';
+import {
+  Component,
+  ViewChild,
+  ViewContainerRef,
+  ComponentRef,
+} from '@angular/core';
+import { PopUpComponent } from './pop-up/pop-up.component';
+
+import { UsersService } from './service/users.service';
+import { UserGroupService } from './service/user-group.service.ts';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
+  providers: [UsersService],
 })
 export class AppComponent {
-  user = {
-    name: '',
-    status: '',
-    avatar: '',
-  };
+  public users = this.UserService.users;
+  constructor(
+    public UserService: UsersService,
+    public UserGroupService: UserGroupService
+  ) {}
 
-  addUser(newUser: any) {
-    this.user.name = newUser.name;
-    this.user.status = newUser.status;
-    this.user.avatar = newUser.avatar;
-  };
+  @ViewChild('popUp', { read: ViewContainerRef })
+  private viewRef!: ViewContainerRef;
+  private componentRef!: ComponentRef<PopUpComponent>;
 
-  removeUser(event:any) {
-    this.user.name = '';
-    this.user.status = '';
-    this.user.avatar = '';
+  showPopUp() {
+    this.componentRef = this.viewRef.createComponent(PopUpComponent);
+
+    this.componentRef.instance.members = this.users.length;
+    this.componentRef.instance.name = this.UserGroupService.groupName;
+
+    this.componentRef.instance.close.subscribe(() => {
+      this.viewRef.clear();
+    });
   }
 }
