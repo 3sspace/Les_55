@@ -1,39 +1,53 @@
-import {
-  Component,
-  ViewChild,
-  ViewContainerRef,
-  ComponentRef,
-} from '@angular/core';
-import { PopUpComponent } from './pop-up/pop-up.component';
+import { Component } from '@angular/core';
+import { FormGroup, FormControl, Validators } from '@angular/forms';
 
-import { UsersService } from './service/users.service';
-import { UserGroupService } from './service/user-group.service.ts';
+
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss'],
-  providers: [UsersService],
+  styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  public users = this.UserService.users;
-  constructor(
-    public UserService: UsersService,
-    public UserGroupService: UserGroupService
-  ) {}
+  title = 'home-work';
+  form!: FormGroup
+ngOnInit(){
+  this.form = new FormGroup({
+    login1: new FormControl('', [Validators.required, Validators.pattern('[a-zA-Z]+$')]),
+    email1: new FormControl('', [Validators.required, Validators.email], [this.checkEmail]),
+    password1: new FormControl('', [Validators.required, Validators.minLength(7), Validators.pattern('[a-z A-Z]+$')]),
+    
 
-  @ViewChild('popUp', { read: ViewContainerRef })
-  private viewRef!: ViewContainerRef;
-  private componentRef!: ComponentRef<PopUpComponent>;
+  })
+}
 
-  showPopUp() {
-    this.componentRef = this.viewRef.createComponent(PopUpComponent);
-
-    this.componentRef.instance.members = this.users.length;
-    this.componentRef.instance.name = this.UserGroupService.groupName;
-
-    this.componentRef.instance.close.subscribe(() => {
-      this.viewRef.clear();
-    });
+  submit (form:any){
+    if(form.valid){
+      console.log(form.value);
+      return;
+      }
+      form.control.markAllAsTouched()
   }
+  submit1(){    
+    if(this.form.valid){
+       console.log(this.form.value);
+       } else {
+       this.form.markAllAsTouched()
+       }    
+  }
+      async checkEmail(control: any): Promise<any> {
+      try {
+        const response = await fetch('https://jsonplaceholder.typicode.com/users');
+        const users = await response.json();
+        const emails = users.map((user: any) => user.email);
+        if(emails.includes(control.value)){
+          control.markAllAsTouched();
+          return {uniqEmail: true};
+        } ;
+      } catch (error) {
+        console.error(error);
+        return false;
+      }
+    }
+  
 }
